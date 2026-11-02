@@ -56,7 +56,8 @@ footer h4{color:#fff;margin:0 0 10px}footer a{display:block;font-size:14px;paddi
 .qr-corner{position:absolute;width:20px;height:20px;border:3px solid #2563eb;border-radius:4px}
 .qr-tl{top:-2px;left:-2px;border-right:none;border-bottom:none}.qr-tr{top:-2px;right:-2px;border-left:none;border-bottom:none}.qr-bl{bottom:-2px;left:-2px;border-right:none;border-top:none}.qr-br{bottom:-2px;right:-2px;border-left:none;border-top:none}
 .pbtn{width:100%;height:50px;padding:14px;background:#2563eb;border:none;border-radius:8px;color:#fff;font-weight:600;cursor:pointer;text-align:center;font-size:15px;margin-top:10px;box-shadow:0 2px 4px rgba(37,99,235,.2);display:flex;justify-content:center;align-items:center;gap:8px}
-.pbtn:disabled{opacity:.6;cursor:default}.pbtn.back{background:transparent;color:#64748b;box-shadow:none;border:1px solid #e2e8f0;height:45px}
+.pbtn:disabled{opacity:.6;cursor:default}
+.pbtn svg{flex:none}.spin{animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.pbtn.back{background:transparent;color:#64748b;box-shadow:none;border:1px solid #e2e8f0;height:45px}
 #payVerifyOverlay {
             position: fixed; inset: 0; z-index: 3000;
             background: rgba(15,23,42,0.85);
@@ -187,6 +188,8 @@ const BOOKS=[
 const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
 const money=n=>'₹'+Number(n).toFixed(0);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const LOCK_ICO='<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>';
+const SPIN_ICO='<svg class="spin" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9"/></svg>';
 const toast=(m,err)=>{const t=$('#toast');t.textContent=m;t.classList.remove('err');if(err){void t.offsetWidth;t.classList.add('err')}t.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>t.style.display='none',2600)};
 let cart=[],bundle=false;
 const save=()=>{try{localStorage.setItem('cart',JSON.stringify(cart))}catch{}};
@@ -251,17 +254,17 @@ $('#pay').onclick=()=>{ if(!cart.length)return toast('Your cart is empty.');
  const upi=`upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${order.amount.toFixed(2)}&cu=INR&tr=${order.id}`;
  $('#cart').classList.remove('open');
  $('#mbody').innerHTML=`<div style="grid-column:1/-1;max-width:420px;margin:0 auto;width:100%"><button class="ib" data-x style="float:right" aria-label="Close">✕</button>
- <div class="payment-box"><div class="secure-badge">🛡️ 100% Safe &amp; Secure</div>
+ <div class="payment-box"><div class="secure-badge"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l8 3v6c0 4.5-3.2 8.2-8 9-4.8-.8-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg><span>100% Safe &amp; Secure</span></div>
  <div style="font-size:14px;font-weight:600;margin-bottom:4px">Pay exactly <span style="color:#2563eb;font-size:18px;font-weight:800">${money(order.amount)}</span></div>
  <div class="qr-wrapper"><div class="qr-corner qr-tl"></div><div class="qr-corner qr-tr"></div><div class="qr-corner qr-bl"></div><div class="qr-corner qr-br"></div><img src="https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(upi)}" alt="Scan to Pay"></div>
  <div style="font-size:12px;font-weight:600;color:#64748b;margin-bottom:15px">▦ Scan to pay via Any UPI App</div>
  <div style="background:rgba(225,29,72,.05);padding:10px;border-radius:8px;border:1px dashed rgba(225,29,72,.3)">Order Ref ID: <b style="color:#e11d48;font-family:monospace;font-size:15px;letter-spacing:1px">${order.id}</b><div style="font-size:10px;margin-top:4px;color:#64748b">* Do not change amount while paying</div></div></div>
- <button class="pbtn" id="vfy">🔒 I Have Paid. Verify Now</button>
+ <button class="pbtn" id="vfy">${LOCK_ICO}<span>I Have Paid. Verify Now</span></button>
  <button class="pbtn back" id="bk">← Back to Cart</button></div>`;
  $('#modal').classList.add('open');
  $('#bk').onclick=()=>{$('#modal').classList.remove('open');$('#cart').classList.add('open')};
- const reset=()=>{const b=$('#vfy');if(b){b.disabled=false;b.textContent='🔒 I Have Paid. Verify Now'}};
- $('#vfy').onclick=async()=>{const b=$('#vfy');if(b.disabled)return;b.disabled=true;b.textContent='⏳ Verifying...';
+ const reset=()=>{const b=$('#vfy');if(b){b.disabled=false;b.innerHTML=LOCK_ICO+'<span>I Have Paid. Verify Now</span>'}};
+ $('#vfy').onclick=async()=>{const b=$('#vfy');if(b.disabled)return;b.disabled=true;b.innerHTML=SPIN_ICO+'<span>Verifying...</span>';
   const used=(()=>{try{return JSON.parse(localStorage.getItem('used'))||[]}catch{return[]}})();
   if(used.includes(order.id)){reset();return toast('❌ This Order ID has already been used!')}
   showPayVerify();
